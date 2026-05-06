@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>请假管理（列表+详情合一）</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+  body{background:#f5f7fa;padding-bottom:40px}
+  .breadcrumb-bar{background:#f0f4fc;padding:14px 16px}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:16px;color:#333}
+  .breadcrumb span{color:#4080dd}
+  .page-title{padding:16px;font-size:22px;font-weight:700;color:#222}
+  .leave-card{background:#fff;margin:0 12px 12px;border-radius:12px;padding:18px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer}
+  .leave-card:active{transform:scale(.98);background:#f9f9f9}
+  .card-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .type{font-size:18px;font-weight:600;color:#222}
+  .time{font-size:14px;color:#999;text-align:right}
+  .info{font-size:15px;color:#666;margin-bottom:6px}
+  .status{font-size:15px;font-weight:500;color:#3683eb;margin-top:6px}
+  #detailPage{display:none;background:#f5f7fa;min-height:100vh}
+  .edit-input{width:100%;border:1px solid #3683eb;border-radius:4px;padding:4px 6px;font-size:17px;color:#333;outline:0}
+  html,body{overflow-x:hidden}
+  .user-header{background:#fff;padding:16px 12px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px}
+  .avatar-placeholder{width:40px;height:40px;border-radius:50%;background:#f5f5f5}
+  .gender-icon-img{width:28px;height:28px;display:inline-block;vertical-align:middle}
+  .leave-info-section{background:#fff;margin-top:10px;padding:16px 12px;position:relative}
+  .section-title{font-size:20px;font-weight:700;color:#333;margin-bottom:12px;padding-left:6px;border-left:5px solid #3683eb;display:flex;justify-content:space-between;align-items:center}
+  :root{--passed-size:52px}
+  .passed-stamp{position:absolute;top:20px;right:16px;width:var(--passed-size);height:var(--passed-size);border-radius:50%;z-index:50;background:0 0;pointer-events:none}
+  .passed-stamp::after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;border-radius:50%;border:1px solid #8fcfbf;z-index:51}
+  .passed-stamp::before{content:"";position:absolute;left:4px;top:4px;right:4px;bottom:4px;border-radius:50%;border:1px dashed #a8d5cb;z-index:52}
+  .passed-stamp .label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(18deg) scale(.6);padding:10px 20px;border:1px solid #a8d5cb;border-radius:8px;background:#fff;color:#88b8aa;font-weight:700;font-size:16px;white-space:nowrap;z-index:54}
+  .passed-stamp .label .inner-dash{position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:6px;border:1px dashed #a8d5cb;z-index:52}
+  .passed-stamp .label .text{position:relative;z-index:55}
+  .info-item{margin-bottom:10px;font-size:17px;line-height:1.4;display:flex;align-items:center}
+  .info-label{color:#999;min-width:unset;padding-right:6px;font-size:17px}
+  .info-value{color:#333;font-size:17px}
+  .process-section{background:#fff;margin-top:10px;padding:12px}
+  :root{--circle-size:18px}
+  .process-item{position:relative;padding-left:28px;padding-bottom:12px}
+  .process-check{position:absolute;left:0;top:6px;width:var(--circle-size);height:var(--circle-size);border-radius:50%;border:2px solid #3683eb;background:#fff;display:flex;align-items:center;justify-content:center;color:#3683eb;font-size:12px;z-index:20}
+  .process-item::before{content:"";position:absolute;left:calc(var(--circle-size)/2);top:calc(6px + var(--circle-size)/2);width:2px;height:calc(100% - 15px);background:#3683eb;z-index:10}
+  .process-item:last-child::before{display:none}
+  .process-content{margin-left:10px;display:flex;justify-content:space-between;align-items:flex-start}
+  .process-name{font-size:17px;color:#333}
+  .process-status{font-size:15px;color:#30bd58}
+  .process-person{font-size:14px;color:#666;margin-top:4px}
+  .process-time{font-size:12px;color:#999;white-space:nowrap;margin-top:4px}
+  .auto-fill-btn{margin:10px 12px;padding:10px 14px;background:#3683eb;color:#fff;border:none;border-radius:8px;font-size:15px;text-align:center;display:none}
+  .auto-fill-btn.show{display:block}
+</style>
+
+<div id="listPage">
+  <div class="breadcrumb-bar"><div class="breadcrumb"><span>📍</span><span>首页</span><span>&gt;</span><span>请假管理</span></div></div>
+  <div class="page-title">申请记录</div>
+  <div class="leave-card" onclick="showDetail(0)">
+    <div class="card-row"><div class="type">其他</div><div class="time">2026-04-30<br>09:49:26</div></div>
+    <div class="info">开始时间：2026-04-30 12:30:00</div>
+    <div class="info">结束时间：2026-04-30 15:30:00</div>
+    <div class="info">理由：</div>
+    <div class="status">审核通过</div>
+  </div>
+  <div class="leave-card" onclick="showDetail(1)">
+    <div class="card-row"><div class="type">其他</div><div class="time">2026-04-24 16:28:15</div></div>
+    <div class="info">开始时间：2026-04-24 17:00:00</div>
+    <div class="info">结束时间：2026-04-24 22:00:00</div>
+    <div class="info">理由：</div>
+    <div class="status">审核通过</div>
+  </div>
+  <div class="leave-card" onclick="showDetail(2)">
+    <div class="card-row"><div class="type">病假</div><div class="time">2026-05-02<br>08:15:33</div></div>
+    <div class="info">开始时间：2026-05-02 09:00:00</div>
+    <div class="info">结束时间：2026-05-02 18:00:00</div>
+    <div class="info">理由：</div>
+    <div class="status">审核通过</div>
+  </div>
+  <div class="leave-card" onclick="showDetail(3)">
+    <div class="card-row"><div class="type">事假</div><div class="time">2026-05-04 14:22:10</div></div>
+    <div class="info">开始时间：2026-05-04 15:00:00</div>
+    <div class="info">结束时间：2026-05-04 17:30:00</div>
+    <div class="info">理由：</div>
+    <div class="status">审核通过</div>
+  </div>
+</div>
+
+<div id="detailPage">
+  <button class="auto-fill-btn" id="autoFillBtn">一键填充当前时间</button>
+  <div class="breadcrumb-bar"><div class="breadcrumb"><span>📍</span><span>首页</span><span>&gt;</span><span>请假管理</span></div></div>
+  <div class="user-header">
+    <div class="avatar-placeholder"></div>
+    <svg class="gender-icon-img" viewBox="0 0 24 24" fill="#3683eb">
+      <path d="M14 4h6v6h-2V6.414l-4.293 4.293-1.414-1.414L16.586 5H14V4zM10 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM10 12a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+    </svg>
+  </div>
+
+  <section class="leave-info-section">
+    <div class="section-title">
+      <span>请假信息</span>
+      <div class="passed-stamp"><div class="label"><div class="inner-dash"></div><span class="text">已通过</span></div></div>
+    </div>
+    <div class="info-item"><span class="info-label">请假类型：</span><span class="info-value" data-field="type">其他</span></div>
+    <div class="info-item"><span class="info-label">请假去向：</span><span class="info-value" data-field="dest"></span></div>
+    <div class="info-item"><span class="info-label">详细地址：</span><span class="info-value" data-field="addr"></span></div>
+    <div class="info-item"><span class="info-label">开始时间：</span><span class="info-value" data-field="start">2026-04-24 17:00:00</span></div>
+    <div class="info-item"><span class="info-label">结束时间：</span><span class="info-value" data-field="end">2026-04-24 22:00:00</span></div>
+    <div class="info-item"><span class="info-label">统计时长：</span><span class="info-value" data-field="duration">5小时</span></div>
+    <div class="info-item"><span class="info-label">紧急联系人：</span><span class="info-value" data-field="contact"></span></div>
+    <div class="info-item"><span class="info-label">紧急联系人电话：</span><span class="info-value" data-field="phone"></span></div>
+    <div class="info-item"><span class="info-label">请假理由：</span><span class="info-value" data-field="reason">请假理由</span></div>
+    <div class="info-item"><span class="info-label">请假状态：</span><span class="info-value" data-field="status" style="color:#3683eb">审核通过</span></div>
+    <div class="info-item"><span class="info-label">销假状态：</span><span class="info-value" data-field="cancelStatus"></span></div>
+    <div class="info-item"><span class="info-label">请假附件：</span><span class="info-value" data-field="attachment"></span></div>
+  </section>
+
+  <section class="process-section">
+    <div class="section-title" style="border-left:6px solid #3683eb;padding-left:8px;">办理进度</div>
+    <div class="process-item">
+      <div class="process-check done">✓</div>
+      <div class="process-content">
+        <div><div><span class="process-name">申请</span><span class="process-status">申请</span></div><div class="process-person" data-edit="person">学生A</div></div>
+        <div class="process-time" data-edit="time">2026-04-24 16:28</div>
+      </div>
+    </div>
+    <div class="process-item">
+      <div class="process-check done">✓</div>
+      <div class="process-content">
+        <div><div><span class="process-name">辅导员审核</span><span class="process-status">审核通过</span></div><div class="process-person" data-edit="person">辅导员B</div></div>
+        <div class="process-time" data-edit="time">2026-04-24 16:50</div>
+      </div>
+    </div>
+    <div class="process-item">
+      <div class="process-check current">◉</div>
+      <div class="process-content"><div><span class="process-name">结束</span></div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  let currentIndex = 0;
+  let isEditing = false;
+  let clickCount = 0;
+  const detailPage = document.getElementById('detailPage');
+  const listPage = document.getElementById('listPage');
+  const cards = document.querySelectorAll('.leave-card');
+  const autoFillBtn = document.getElementById('autoFillBtn');
+
+  // 本地永久保存
+  const savedStudent = localStorage.getItem('leave_student') || '学生A';
+  const savedTeacher = localStorage.getItem('leave_teacher') || '辅导员B';
+  const savedReason = localStorage.getItem('leave_reason') || '身体不适'; // 记住理由
+
+  document.querySelectorAll('[data-edit="person"]')[0].innerText = savedStudent;
+  document.querySelectorAll('[data-edit="person"]')[1].innerText = savedTeacher;
+  document.querySelector('[data-field="reason"]').innerText = savedReason;
+
+  function showDetail(index) {
+    currentIndex = index;
+    let card = cards[index];
+    let type = card.querySelector('.type').innerText;
+    let startTime = card.querySelectorAll('.info')[0].innerText.replace('开始时间：','');
+    let endTime = card.querySelectorAll('.info')[1].innerText.replace('结束时间：','');
+    let status = card.querySelector('.status').innerText;
+
+    document.querySelector('[data-field="type"]').innerText = type;
+    document.querySelector('[data-field="start"]').innerText = startTime;
+    document.querySelector('[data-field="end"]').innerText = endTime;
+    document.querySelector('[data-field="status"]').innerText = status;
+    document.querySelector('[data-field="reason"]').innerText = savedReason; // 加载记住的理由
+
+    listPage.style.display = 'none';
+    detailPage.style.display = 'block';
+  }
+
+  function showList() {
+    detailPage.style.display = 'none';
+    listPage.style.display = 'block';
+  }
+
+  let startX = 0, startY = 0;
+  detailPage.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; });
+  detailPage.addEventListener('touchend', e => {
+    let dx = e.changedTouches[0].clientX - startX;
+    let dy = e.changedTouches[0].clientY - startY;
+    if (dx > 70 && Math.abs(dy) < 60) showList();
+  });
+
+  detailPage.addEventListener('click', e => {
+    if(isEditing) return;
+    if(e.target.closest('.edit-input') || e.target.closest('.section-title')) return;
+    clickCount++;
+    if(clickCount >=5) { enterEdit(); clickCount = 0; }
+  });
+
+  detailPage.addEventListener('click', e => {
+    if(!isEditing) return;
+    if(e.target.closest('.breadcrumb-bar') || e.target.closest('.user-header')) saveAll();
+  });
+
+  function enterEdit() {
+    isEditing = true;
+    autoFillBtn.classList.add('show');
+    document.querySelectorAll('[data-field], [data-edit]').forEach(el => {
+      let v = el.innerText;
+      el.innerHTML = `<input type="text" class="edit-input" value="${v.replace(/"/g,'&quot;')}">`;
+    });
+  }
+
+  function saveAll() {
+    isEditing = false;
+    autoFillBtn.classList.remove('show');
+    
+    let persons = document.querySelectorAll('[data-edit="person"] input');
+    let studentVal = persons[0].value;
+    let teacherVal = persons[1].value;
+    let reasonVal = document.querySelector('[data-field="reason"] input').value; // 取理由
+    
+    // 全部永久保存
+    localStorage.setItem('leave_student', studentVal);
+    localStorage.setItem('leave_teacher', teacherVal);
+    localStorage.setItem('leave_reason', reasonVal); // 记住理由
+    
+    document.querySelectorAll('.edit-input').forEach(input => {
+      let p = input.parentElement;
+      p.innerText = input.value;
+    });
+  }
+
+  function fmt(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+
+           String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':00';
+  }
+
+  function randomTimeBetween(start, end) {
+    const min = start.getTime();
+    const max = end.getTime();
+    const random = Math.random() * (max - min) + min;
+    return new Date(random);
+  }
+
+  // 一键填充 + 时间顺序正确 + 自动保存
+  autoFillBtn.addEventListener('click', () => {
+    const now = new Date();
+    const leaveStart = new Date(now.getTime() + 30 * 60 * 1000);
+    const applyMin = new Date(leaveStart.getTime() - 2 * 60 * 60 * 1000);
+    const applyMax = new Date(leaveStart.getTime() - 1 * 60 * 60 * 1000);
+    const applyTime = randomTimeBetween(applyMin, applyMax);
+    const checkTime = randomTimeBetween(applyTime, leaveStart);
+
+    document.querySelector('[data-field="start"] .edit-input').value = fmt(leaveStart);
+    document.querySelector('[data-field="end"] .edit-input').value = fmt(new Date(leaveStart.getTime() + 3 * 60 * 60 * 1000));
+    
+    const ts = document.querySelectorAll('[data-edit="time"] .edit-input');
+    if(ts.length >= 2){
+      ts[0].value = fmt(applyTime).substring(0, 16);
+      ts[1].value = fmt(checkTime).substring(0, 16);
+    }
+
+    saveAll();
+  });
+</script>
+</html>
